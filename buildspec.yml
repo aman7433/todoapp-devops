@@ -1,0 +1,13 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - npm install --no-cache
+  build:
+    commands:
+      - npm test
+
+artifacts:
+  files:
+    - '**/*'
