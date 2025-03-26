@@ -1,0 +1,39 @@
+name: Deploy TodoApp to AWS
+
+on:
+  push:
+    branches:
+      - main  # Runs when code is pushed to main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # GitHub-hosted runner
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3  # Clones the repo inside GitHub Actions runner
+
+      - name: Deploy to AWS EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.AWS_EC2_IP }}
+          username: ubuntu
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            # Update system and install Docker if not installed
+            # sudo apt-get update -y
+            # sudo apt-get install -y docker.io git
+
+            # Navigate to the project directory (or remove old repo if exists)
+            cd /home/ubuntu || exit
+            sudo rm -rf todoapp  # Remove old repo to ensure a clean start
+
+            # Clone the latest repository
+            git clone https://github.com/aman7433/todoapp-devops.git
+            cd todoapp
+
+            # Build and run the Docker container
+            sudo docker build -t todoapp .
+            sudo docker stop todoapp || true  # Stop old container if running
+            sudo docker rm todoapp || true   # Remove stopped container
+            sudo docker run -d -p 8000:8000 --name todoapp todoapp
